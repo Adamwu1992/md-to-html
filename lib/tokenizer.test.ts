@@ -1,6 +1,9 @@
 import { Tokenizer } from './tokenizer'
 
-const s = '## hello world'
+const s = `
+## hello world
+good
+`
 
 let res = []
 const tokenizer = new Tokenizer(token => {
