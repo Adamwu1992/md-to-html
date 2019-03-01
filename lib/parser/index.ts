@@ -5,7 +5,10 @@ import { EOF } from '../utils'
 export function parse(input: string): string {
 
   const transformer = new Transformer
-  const tokenizer = new Tokenizer((token: IToken) => transformer.getInput(token))
+  const tokenizer = new Tokenizer((token: IToken) => {
+    // console.log('tokenizer', token)
+    transformer.getInput(token)
+  })
 
   const l = input.length
   let i = 0

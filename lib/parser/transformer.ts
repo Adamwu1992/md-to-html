@@ -23,6 +23,23 @@ class Text implements Node {
 }
 type INode = Document | Element | Text
 
+function whatsTag(tag: string): string {
+  switch (tag) {
+    case '#': return 'h1'
+    case '##': return 'h2'
+    case '###': return 'h3'
+    case '####': return 'h4'
+    case '#####': return 'h5'
+    case '######': return 'h6'
+    case 'p': return 'p'
+    case '-':
+    case '*': return 'em'
+    case '__':
+    case '**': return 'strong'
+    default: return tag
+  }
+}
+
 export class Transformer {
 
   output: string = ''
@@ -41,15 +58,8 @@ export class Transformer {
   }
 
   handleTagOpen(token: TagOpen) {
-    let tagName
-    if (token.name.startsWith('#')) {
-      tagName = `h${token.name.length}`
-    } else {
-      tagName = token.name
-    }
+    const tagName = whatsTag(token.name)
     this.output += `<${tagName}>`
-
-
     const ele = new Element(tagName)
     const top = <Document | Element>this.stack[this.stack.length - 1]
     top.childNodes.push(ele)
@@ -58,12 +68,7 @@ export class Transformer {
 
   handleTagClose(token: TagClose) {
     const top = <TagOpen>this.stack[this.stack.length - 1]
-    let tagName
-    if (top.name.startsWith('#')) {
-      tagName = `h${top.name.length}`
-    } else {
-      tagName = top.name
-    }
+    const tagName = whatsTag(top.name)
     this.output += `</${tagName}>`
     this.stack.pop()
   }

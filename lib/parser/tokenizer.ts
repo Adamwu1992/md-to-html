@@ -122,17 +122,34 @@ export class Tokenizer {
     return this._state
   }
 
+  // 处理标签
   beginTagOpen(c: string): Function {
-    if (isWhiteSpace(c)) {
-      // 遇到空格 表示标签结束
-      this.emitToken()
-      return this.beginTagContent
-    } else if (isTagBeginning(c)) {
-      (<TagOpen>this.token).name += c
+    if (isTagBeginning(c)) {
+      // 遇到标签字符 判断和已有标签是否相同
+      const currentTagOpen = <TagOpen>this.token
+      if (currentTagOpen.name === c) {
+        // 如果相同 表示是同一个标签
+        currentTagOpen.name += c
+      } else {
+        // 否则 记录当前标签 并创建一个新的标签
+        this.emitToken()
+        this.token = new TagOpen(c)
+      }
       return this.beginTagOpen
     }
+    // 遇到非标签字符串 表示标签结束
+    if (isWhiteSpace(c)) {
+      this.emitToken()
+    } else {
+      this.emitToken()
+      this.token = new Text(c)
+      this.emitToken()
+    }
+    return this.beginTagContent
+    
   }
 
+  // 处理文本
   beginTagContent(c: string): Function {
     // 处理终止符 记录一个结束标签
     if (c === EOF) {

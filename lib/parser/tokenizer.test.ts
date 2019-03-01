@@ -2,7 +2,7 @@ import { Tokenizer, IToken } from './tokenizer'
 
 const s = `
 ## hello world  
-good
+**good**
 `
 
 let res: Array<IToken> = []
