@@ -10,3 +10,12 @@ export function isLineBreak(c: string): boolean {
 export function isPlainChar(c: string): boolean {
   return !isWhiteSpace(c) && !isLineBreak(c)
 }
+
+export function isTagBeginning(c: string): boolean {
+  return c === '#'
+    || c === '-'
+    || c === '_'
+    || c === '*'
+}
+
+export const EOF: undefined = void 0

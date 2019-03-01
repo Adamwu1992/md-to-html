@@ -1,2 +1,2 @@
 require('ts-node')
-require('../test/parser')
+require('../debug/tokenizer')
