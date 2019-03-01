@@ -55,12 +55,17 @@ export type IToken = TagOpen
   | WhiteSpace
   | WhiteLine
 
+
+export interface IState {
+  (c: string): IState | null
+}
+
 export class Tokenizer {
 
   // 收集token时触发
   onEmit: Function = null
   // 当前状态
-  state: Function = null
+  state: IState = null
   // 已收集的token集合
   tokens: Array<IToken> = []
   // 当前正在处理的token
@@ -88,13 +93,13 @@ export class Tokenizer {
   }
 
   // 接受输入字符
-  getInput(c: String) {
+  getInput(c: string) {
     if (!this.state) return
     this.state = this.state(c)
   }
 
   // 初始状态 处理所有字符
-  _state(c: string): Function {
+  _state(c: string): IState {
 
     // 终止符
     if (c === EOF) { return }
@@ -123,7 +128,7 @@ export class Tokenizer {
   }
 
   // 处理标签
-  beginTagOpen(c: string): Function {
+  beginTagOpen(c: string): IState {
     if (isTagBeginning(c)) {
       // 遇到标签字符 判断和已有标签是否相同
       const currentTagOpen = <TagOpen>this.token
@@ -150,7 +155,7 @@ export class Tokenizer {
   }
 
   // 处理文本
-  beginTagContent(c: string): Function {
+  beginTagContent(c: string): IState {
     // 处理终止符 记录一个结束标签
     if (c === EOF) {
       this.token = new TagClose

@@ -21,5 +21,5 @@ testSuits(
   end with two whitespace   
   good
   `,
-  '<h1>title</h1><p>hello world</p><br/><p>good</p>'
+  '<h1>title</h1><p>end with two whitespace</p><br/><p>good</p>'
 )
