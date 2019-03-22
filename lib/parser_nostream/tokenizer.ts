@@ -50,7 +50,6 @@ export class Tokenizer {
   }
 
   getInput(c: string) {
-    console.log(this.state.name, c)
     this.state = this.state(c)
   }
 

@@ -19,10 +19,20 @@ describe('Tokenizer: ', () => {
     expect(1).toBe(1)
   })
 
-  it.only('No crash with break line:', () => {
+  it('No crash with break line:', () => {
     const input = `# title
     hello _**world**_`
     const output = tokenizer(input)
+    console.log(output)
+    expect(1).toBe(1)
+  })
+})
+
+describe('Parser:', () => {
+  it.only('No crash:', () => {
+    const input = `# title
+    hello _**world**_`
+    const output = parse(input)
     console.log(output)
     expect(1).toBe(1)
   })

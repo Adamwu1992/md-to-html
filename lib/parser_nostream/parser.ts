@@ -86,6 +86,7 @@ export class Parser {
   getInput(token: IToken) {
     if (token instanceof Tag) {
       // 遇到标签token
+      // TODO: 判断是自闭标签token（#）还是成对标签token（**）
       // 如果有暂存节点，添加到栈顶节点的子节点
       if (this.tempNode) {
         this.appendChild(this.tempNode)
@@ -105,7 +106,8 @@ export class Parser {
 
       // 判断栈顶节点
       if (this.currentNode instanceof Element) {
-        // 如果站定节点是Element 表示该节点已经完整 出栈
+        // 如果栈顶节点是Element 表示该节点已经完整 出栈
+        // TODO: 判断是自闭标签token（#）还是成对标签token（**）
         this.nodeStack.pop()
       } else {
         // 如果栈顶节点是根节点
