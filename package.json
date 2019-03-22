@@ -4,7 +4,8 @@
   "description": "简易的正则表达式解析器",
   "main": "index.js",
   "scripts": {
-    "test": "jest ./test"
+    "test": "jest ./test",
+    "test:no": "jest ./test/notream.test.ts"
   },
   "repository": {
     "type": "git",

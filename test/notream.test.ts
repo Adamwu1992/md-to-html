@@ -3,8 +3,7 @@ import { parse } from '../lib/parser_nostream'
 it('No Crash:', () => {
   const input = `
     # title
-    hello **world**
-
+    hello _**world**_
   `
   const tokens = parse(input)
   console.log(tokens)
