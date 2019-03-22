@@ -1,5 +1,6 @@
 import { EOF } from './share'
 import { Tokenizer, IToken } from './tokenizer'
+import { Parser } from './parser'
 // import { Transformer } from './transformer'
 
 export function parse(input: string) {
@@ -13,15 +14,19 @@ export function parse(input: string) {
     i++
   }
   tokenizer.getInput(EOF)
-  return tokenizer.output
+  // return tokenizer.output
 
-  // const tokens: Array<IToken> = tokenizer.output
-  // const ll = tokens.length
-  // let j = 0
-  // while(j < ll) {
-  //   transformer.getInput(tokens[j])
-  //   j++
-  // }
+  const parser = new Parser
 
-  // return transformer.output
+  const tokens: Array<IToken> = tokenizer.output
+
+  console.log(tokens)
+  const ll = tokens.length
+  let j = 0
+  while(j < ll) {
+    parser.getInput(tokens[j])
+    j++
+  }
+
+  return parser.output
 }

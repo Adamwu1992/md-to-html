@@ -1,6 +1,6 @@
 import { isTag, isWhiteSpace, isLineBreak, isText, EOF } from './share'
 
-class Tag {
+export class Tag {
   name: string
   constructor(name: string) {
     this.name = name
@@ -11,20 +11,20 @@ class Tag {
   }
 }
 
-class Text {
+export class Content {
   value: string
   constructor(value: string) {
     this.value = value
   }
 }
 
-class WhiteSpace {}
+export class WhiteSpace {}
 
-class LineBreak {}
+export class LineBreak {}
 
-export type IToken = Tag | Text | WhiteSpace | LineBreak
+export type IToken = Tag | Content | WhiteSpace | LineBreak
 
-interface TokenState {
+export interface TokenState {
   (c: string): TokenState
 }
 
@@ -50,18 +50,24 @@ export class Tokenizer {
   }
 
   getInput(c: string) {
+    console.log(this.state.name, c)
     this.state = this.state(c)
   }
 
   private state(c: string): TokenState {
-    if (c === EOF) return
+    if (c === EOF) {
+      if (this.token) {
+        this.collectToken()
+      }
+      return
+    }
     if (isTag(c)) {
       // 遇到标签，记录标签，进入atTagBeginning状态
       this.token = new Tag(c)
       return this.atTagBeginning
     } else if (isText(c)) {
       // 遇到文本，收集文本，进入beforeContent状态
-      this.collectToken(new Text(c))
+      this.collectToken(new Content(c))
       return this.beforeContent
     }
     // 忽略空格和换行
@@ -70,7 +76,12 @@ export class Tokenizer {
 
   // 当前token是一个标签
   private atTagBeginning(c: string): TokenState {
-    if (c === EOF) return
+    if (c === EOF) {
+      if (this.token) {
+        this.collectToken()
+      }
+      return
+    }
     if (isTag(c)) {
       // 如果遇到标签字符，且属于当前标签，添加进当前token
       if((<Tag>this.token).belongs(c)) {
@@ -94,14 +105,19 @@ export class Tokenizer {
     } else {
       // 如果遇到文本，表示标签结束
       this.collectToken()
-      this.collectToken(new Text(c))
+      this.collectToken(new Content(c))
       return this.beforeContent
     }
   }
 
   // 标签结束 接下来是标签的文本
   private beforeContent(c: string): TokenState {
-    if (c === EOF) return
+    if (c === EOF) {
+      if (this.token) {
+        this.collectToken()
+      }
+      return
+    }
     if (isTag(c)) {
       // 如果遇到标签，表示处于atTagBeginning状态
       this.token = new Tag(c)
@@ -111,7 +127,7 @@ export class Tokenizer {
       if (isWhiteSpace(c)) {
         this.collectToken(new WhiteSpace)
       } else {
-        this.collectToken(new Text(c))
+        this.collectToken(new Content(c))
       }
       return this.beforeContent
     } else {
@@ -122,14 +138,19 @@ export class Tokenizer {
   }
 
   private afterContent(c: string): TokenState {
-    if (c === EOF) return
+    if (c === EOF) {
+      if (this.token) {
+        this.collectToken()
+      }
+      return
+    }
     if (isTag(c)) {
       // 如果遇到标签，表示处于atTagBeginning状态
       this.token = new Tag(c)
       return this.atTagBeginning
     } else if (isText(c)) {
       // 如果遇到文本，记录文本，进入beforeContent状态
-      this.collectToken(new Text(c))
+      this.collectToken(new Content(c))
       return this.beforeContent
     } else {
       // 遇到空格和换行，记录
