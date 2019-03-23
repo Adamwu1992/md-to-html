@@ -12,7 +12,7 @@ describe('Tokenizer: ', () => {
     return t.output
   }
 
-  it('No Crash:', () => {
+  it('No crash:', () => {
     const input = '# hello'
     const output = tokenizer(input)
     console.log(output)

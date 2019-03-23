@@ -22,6 +22,7 @@ export class Element extends Node {
       this.name !== 'italic'
   }
 
+  // 将token转化为元素
   private tagName(tag: Tag): string {
     switch (tag.name) {
       case '#': return 'h1'

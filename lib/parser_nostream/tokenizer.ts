@@ -41,12 +41,16 @@ export class Tokenizer {
   output: Array<IToken>
   private token: IToken
 
-  private collectToken(token = this.token) {
+  private collectToken(token?: IToken) {
     if (!this.output) {
       this.output = []
     }
-    if (!token) return
-    this.output.push(token)
+    if (token) {
+      this.output.push(token)
+    } else if (this.token) {
+      this.output.push(this.token)
+      this.token = null
+    }
   }
 
   getInput(c: string) {
@@ -55,9 +59,7 @@ export class Tokenizer {
 
   private state(c: string): TokenState {
     if (c === EOF) {
-      if (this.token) {
-        this.collectToken()
-      }
+      this.collectToken()
       return
     }
     if (isTag(c)) {
@@ -76,9 +78,7 @@ export class Tokenizer {
   // 当前token是一个标签
   private atTagBeginning(c: string): TokenState {
     if (c === EOF) {
-      if (this.token) {
-        this.collectToken()
-      }
+      this.collectToken()
       return
     }
     if (isTag(c)) {
@@ -92,9 +92,13 @@ export class Tokenizer {
       }
       return this.atTagBeginning
     } else if (isWhiteSpace(c)) {
-      // 如果遇到空格，表示当前的标签结束
+      // 如果遇到空格，表示当前的标签结束，收集当前token
+      const tokenName = (<Tag>this.token).name
       this.collectToken()
-      this.collectToken(new WhiteSpace)
+      // 如果当前的tag不是标题，则该空格是tag的内容，收集
+      if (tokenName.indexOf('#') === -1) {
+        this.collectToken(new WhiteSpace)
+      }
       return this.beforeContent
     } else if (isLineBreak(c)) {
       // 如果遇到换行，表示标签结束
@@ -112,9 +116,7 @@ export class Tokenizer {
   // 标签结束 接下来是标签的文本
   private beforeContent(c: string): TokenState {
     if (c === EOF) {
-      if (this.token) {
-        this.collectToken()
-      }
+      this.collectToken()
       return
     }
     if (isTag(c)) {
@@ -138,9 +140,7 @@ export class Tokenizer {
 
   private afterContent(c: string): TokenState {
     if (c === EOF) {
-      if (this.token) {
-        this.collectToken()
-      }
+      this.collectToken()
       return
     }
     if (isTag(c)) {
