@@ -47,6 +47,11 @@ export class Text extends Node {
     super()
     this.value = value
   }
+
+  get isEndWithWhitespace(): boolean {
+    const l = this.value.length
+    return this.value[l - 1] === ' '
+  }
 }
 
 export type INode = Document | Element | Text
@@ -93,79 +98,106 @@ export class Parser {
 
     if (token instanceof Tag) {
       // 遇到标签token
-      // 如果有暂存节点，添加到栈顶节点的子节点
-      if (this.tempNode) {
-        this.appendChild(this.tempNode)
-        this.tempNode = null
-      }
-      const ele = new Element(token)
-      const currentNode = <Element>this.currentNode
-      if (!currentNode.isSelfClosing && ele.name === currentNode.name) {
-        // 如果栈顶节点不是自闭节点，且当前节点和栈顶节点相同，则当前节点为栈顶节点的关闭节点
-        this.nodeStack.pop()
-      } else {
-        // 否则，当前节点为栈顶节点的子节点
-        this.appendChild(ele)
-        this.nodeStack.push(ele)
-      }
+      this.handleTag(token)
     } else if (token instanceof LineBreak) {
       // 如果遇到换行token
-      // @config 忽略连续的换行
-      // 判断暂存节点类型：如果有节点暂存，且不是换行节点，将节点添加到栈顶节点子节点
-      console.log('linebreak', this.tempNode, this.nodeStack.length)
-      if ((this.tempNode instanceof Element && this.tempNode.name !== 'br') ||
-        this.tempNode instanceof Text) {
-        this.appendChild(this.tempNode)
-        this.tempNode = null
-      }
-
-      // 判断栈顶节点
-      if (this.currentNode instanceof Element) {
-        // 如果栈顶节点是Element 表示该节点已经完整 出栈
-        this.nodeStack.pop()
-      } else {
-        // 如果栈顶节点是根节点
-        // 判断前一个节点是不是<br>
-        if (this.tempNode instanceof Element && this.tempNode.name === 'br') {
-          // 如果前一个节点是<br>，忽略该token
-        } else {
-          // 暂存<br>
-          this.tempNode = new Element('br')
-        }
-      }
+      this.handleLineBreak(token)
     } else if (token instanceof Content) {
       // 遇到文本token
-      // 如果有暂存节点，且暂存节点是文本节点，合并当前文本到暂存节点
-      if (this.tempNode instanceof Text) {
-        this.tempNode.value += token.value
-        return
-      }
-      // 如果暂存节点不为null，添加暂存节点
-      if (this.tempNode !== null) {
-        this.appendChild(this.tempNode)
-        this.tempNode = null
-      }
-      // 将当前token暂存
-      this.tempNode = new Text(token.value)
+      this.handleContent(token)
     } else if (token instanceof WhiteSpace) {
       // 遇到空格token
-      // @config 合并连续的空格
+      this.handleWhiteSpace(token)
+    }
+  }
 
-      // 判断暂存节点
-      if (this.tempNode === null) {
-        // 如果没有暂存节点，暂存该空格节点
-        this.tempNode = new Text(' ')
-      } else {
-        // 如果有暂存节点，判断类型
-        if (this.tempNode instanceof Text && this.tempNode.value === ' ') {
-          // 如果暂存节点是空格节点，忽略该空格token
+  private handleTag(token: Tag): void {
+    // 如果有暂存节点，添加到栈顶节点的子节点
+    if (this.tempNode) {
+      this.appendChild(this.tempNode)
+      this.tempNode = null
+    }
+    const ele = new Element(token)
+    const currentNode = <Element>this.currentNode
+    if (!currentNode.isSelfClosing && ele.name === currentNode.name) {
+      // 如果栈顶节点不是自闭节点，且当前节点和栈顶节点相同，则当前节点为栈顶节点的关闭节点
+      this.nodeStack.pop()
+    } else {
+      // 否则，当前节点为栈顶节点的子节点
+      this.appendChild(ele)
+      this.nodeStack.push(ele)
+    }
+  }
+
+
+  /**
+   * @config 合并连续的空格
+   * @param whitespace 
+   */
+  private handleWhiteSpace(whitespace: WhiteSpace): void {
+    // 判断暂存节点
+    if (this.tempNode === null) {
+      // 如果没有暂存节点，暂存该空格节点
+      this.tempNode = new Text(' ')
+    } else {
+      // 如果有暂存节点，判断类型
+      if (this.tempNode instanceof Text) {
+        // 如果暂存节点是文本节点
+        if (this.tempNode.isEndWithWhitespace) {
+          // 如果暂存节点是文本节点，且以空格结尾，忽略该空格token
         } else {
-          // 如果是其他暂存节点，添加进栈顶节点的子节点中
-          this.appendChild(this.tempNode)
-          // 暂存该空格节点
-          this.tempNode = new Text(' ')
+          // 追加到当前的文本节点
+          this.tempNode.value += ' '
         }
+      } else {
+        // 如果是其他暂存节点，添加进栈顶节点的子节点中
+        this.appendChild(this.tempNode)
+        // 暂存该空格节点
+        this.tempNode = new Text(' ')
       }
     }
+  }
+
+
+  private handleLineBreak(linebreak: LineBreak): void {
+    // @config 忽略连续的换行
+    // 判断暂存节点类型：如果有节点暂存，且不是换行节点，将节点添加到栈顶节点子节点
+    console.log('linebreak', this.tempNode, this.nodeStack.length)
+    if ((this.tempNode instanceof Element && this.tempNode.name !== 'br') ||
+      this.tempNode instanceof Text) {
+      this.appendChild(this.tempNode)
+      this.tempNode = null
+    }
+
+    // 判断栈顶节点
+    if (this.currentNode instanceof Element) {
+      // 如果栈顶节点是Element 表示该节点已经完整 出栈
+      this.nodeStack.pop()
+    } else {
+      // 如果栈顶节点是根节点
+      // 判断前一个节点是不是<br>
+      if (this.tempNode instanceof Element && this.tempNode.name === 'br') {
+        // 如果前一个节点是<br>，忽略该token
+      } else {
+        // 暂存<br>
+        this.tempNode = new Element('br')
+      }
+    }
+  }
+
+
+  private handleContent(token: Content): void {
+    // 如果有暂存节点，且暂存节点是文本节点，合并当前文本到暂存节点
+    if (this.tempNode instanceof Text) {
+      this.tempNode.value += token.value
+      return
+    }
+    // 如果暂存节点不为null，添加暂存节点
+    if (this.tempNode !== null) {
+      this.appendChild(this.tempNode)
+      this.tempNode = null
+    }
+    // 将当前token暂存
+    this.tempNode = new Text(token.value)
   }
 }
