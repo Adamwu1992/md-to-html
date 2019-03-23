@@ -90,6 +90,7 @@ export class Parser {
   }
 
   getInput(token: IToken) {
+
     if (token instanceof Tag) {
       // 遇到标签token
       // 如果有暂存节点，添加到栈顶节点的子节点
@@ -111,7 +112,9 @@ export class Parser {
       // 如果遇到换行token
       // @config 忽略连续的换行
       // 判断暂存节点类型：如果有节点暂存，且不是换行节点，将节点添加到栈顶节点子节点
-      if (this.tempNode !== null && this.tempNode instanceof Element && this.tempNode.name !== 'br') {
+      console.log('linebreak', this.tempNode, this.nodeStack.length)
+      if ((this.tempNode instanceof Element && this.tempNode.name !== 'br') ||
+        this.tempNode instanceof Text) {
         this.appendChild(this.tempNode)
         this.tempNode = null
       }
@@ -132,13 +135,18 @@ export class Parser {
       }
     } else if (token instanceof Content) {
       // 遇到文本token
-      // 如果有暂存节点，添加到栈顶节点的子节点
-      if (this.tempNode) {
+      // 如果有暂存节点，且暂存节点是文本节点，合并当前文本到暂存节点
+      if (this.tempNode instanceof Text) {
+        this.tempNode.value += token.value
+        return
+      }
+      // 如果暂存节点不为null，添加暂存节点
+      if (this.tempNode !== null) {
         this.appendChild(this.tempNode)
         this.tempNode = null
       }
-      const text = new Text(token.value);
-      this.appendChild(text)
+      // 将当前token暂存
+      this.tempNode = new Text(token.value)
     } else if (token instanceof WhiteSpace) {
       // 遇到空格token
       // @config 合并连续的空格

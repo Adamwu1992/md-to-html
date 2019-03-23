@@ -31,7 +31,7 @@ describe('Tokenizer: ', () => {
 describe('Parser:', () => {
   it.only('No crash:', () => {
     const input = `# title
-    hello _**world**_`
+    hello    _**world**_`
     const output = parse(input)
     console.log(output)
     console.log(JSON.stringify(output))
