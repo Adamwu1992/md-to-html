@@ -34,6 +34,7 @@ describe('Parser:', () => {
     hello _**world**_`
     const output = parse(input)
     console.log(output)
+    console.log(JSON.stringify(output))
     expect(1).toBe(1)
   })
 })

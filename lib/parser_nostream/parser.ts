@@ -17,6 +17,11 @@ export class Element extends Node {
     this.childNodes = []
   }
 
+  get isSelfClosing(): boolean {
+    return this.name !== 'strong' &&
+      this.name !== 'italic'
+  }
+
   private tagName(tag: Tag): string {
     switch (tag.name) {
       case '#': return 'h1'
@@ -86,15 +91,21 @@ export class Parser {
   getInput(token: IToken) {
     if (token instanceof Tag) {
       // 遇到标签token
-      // TODO: 判断是自闭标签token（#）还是成对标签token（**）
       // 如果有暂存节点，添加到栈顶节点的子节点
       if (this.tempNode) {
         this.appendChild(this.tempNode)
         this.tempNode = null
       }
-      const ele = new Element(token);
-      this.appendChild(ele)
-      this.nodeStack.push(ele)
+      const ele = new Element(token)
+      const currentNode = <Element>this.currentNode
+      if (!currentNode.isSelfClosing && ele.name === currentNode.name) {
+        // 如果栈顶节点不是自闭节点，且当前节点和栈顶节点相同，则当前节点为栈顶节点的关闭节点
+        this.nodeStack.pop()
+      } else {
+        // 否则，当前节点为栈顶节点的子节点
+        this.appendChild(ele)
+        this.nodeStack.push(ele)
+      }
     } else if (token instanceof LineBreak) {
       // 如果遇到换行token
       // @config 忽略连续的换行
@@ -107,7 +118,6 @@ export class Parser {
       // 判断栈顶节点
       if (this.currentNode instanceof Element) {
         // 如果栈顶节点是Element 表示该节点已经完整 出栈
-        // TODO: 判断是自闭标签token（#）还是成对标签token（**）
         this.nodeStack.pop()
       } else {
         // 如果栈顶节点是根节点
